@@ -1,7 +1,7 @@
 #!/bin/bash
 if [[ "$#" -gt 0 ]]  && [[ "$#" -lt 2 ]];then
 namespace=$1
-getpods=$(oc get pods -n $namespace -o jsonpath='{range .items[*].metadata}{.name}{"\n"}{end}')
+getpods=$(oc get pods -n $namespace -o jsonpath='{range .items[*].metadata}{.name}{"\n"}{end}' --field-selector=status.phase==Running)
 for POD in ${getpods};do
 	mountpoints=$(oc get pod ${POD} -o jsonpath='{ .spec.containers[].volumeMounts[*].mountPath }' -n $namespace)
 	for mountpoint in ${mountpoints};do
