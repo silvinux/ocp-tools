@@ -17,9 +17,22 @@ if [[ "$#" -gt 0 ]]  && [[ "$#" -lt 2 ]];then
 namespace=$1
 getpods=$(oc get pods -n $namespace -o jsonpath='{range .items[*].metadata}{.name}{"\n"}{end}' --field-selector=status.phase==Running)
 for POD in ${getpods};do
-	mountpoints=$(oc get pod ${POD} -o jsonpath='{ .spec.containers[].volumeMounts[*].mountPath }' -n $namespace)
-	for mountpoint in ${mountpoints};do
-		echo "${POD}:${mountpoint}"
+	pathvolumeMounts=$(oc get pod ${POD} -o jsonpath='{ .spec.containers[].volumeMounts[*].mountPath }' -n $namespace)
+	namevolumeMounts=$(oc get pod ${POD} -o jsonpath='{ .spec.containers[].volumeMounts[*].name }' -n $namespace)
+	pvcNames=$(oc get pod ${POD} -o jsonpath='{.spec.volumes[?(@.persistentVolumeClaim)].name}' -n $namespace)
+	mountpoints=($pathvolumeMounts)
+	volumenames=($namevolumeMounts)
+	pvcs=($pvcNames)
+	count=${#mountpoints[@]}
+	for i in $(seq 1 $count);do
+	    if [[ $pvcs == ${volumenames[$i-1]} ]];then
+	    	echo "-------------------------------"
+	    	echo POD: ${POD}
+	    	echo MountPoint: ${mountpoints[$i-1]} 
+	    	echo VolumeName: ${volumenames[$i-1]}
+	    	echo "oc rsync ${POD}:${mountpoints[$i-1]}"
+	    	echo "-------------------------------"
+	    fi
 	done
 done
 else
