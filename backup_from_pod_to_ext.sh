@@ -18,15 +18,15 @@ for POD in ${getpods};do
 	echo "------------------------------------"
 	echo "POD: ${POD}"
 	echo "------------------------------------"
-	echo "mkdir -p ${pathbackup}/${namespace}/$(date +%Y-%m-%d_%H%M%S)/${POD}"
-	#mkdir -p ${pathbackup}/${namespace}/$(date +%Y-%m-%d_%H%M%S)/${POD}
+	echo "mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}"
+	#mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}
 	echo "------------------------------------"
 	for mountpoint in ${mountpoints};do
 		echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+"
 		echo "MOUNTPOINT: ${mountpoint}"
 		echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+"
-		echo "oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y-%m-%d_%H%M%S)/${POD}/ -n ${namespace}"
-		#oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y-%m-%d_%H%M%S)/${POD}/ -n ${namespace}
+		echo "oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}/ -n ${namespace}"
+		#oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}/ -n ${namespace}
 	done
 done
 else
