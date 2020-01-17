@@ -45,11 +45,14 @@ elif [[ -z ${DIRECTORY} ]];then
 elif [[ -d ${DIRECTORY} ]];then
 	namespace=${PROJECT}
 	pathbackup=${DIRECTORY}
-
-	# BACKUP log file
-	exec > >(tee -ia ${pathbackup}/${namespace}-$(date +%Y%m%d)-ocp_backup.log)
-	# BACKUP log file
-
+	if [[ -d ${pathbackup}/${namespace}/logs ]];then 
+		# BACKUP log file
+		exec > >(tee -ia ${pathbackup}/${namespace}/$(date +%Y%m%d)/logs/${namespace}-$(date +%Y-%m-%d_%H%M%S)-ocp_backup.log)
+	else
+		mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/logs/
+		# BACKUP log file
+		exec > >(tee -ia ${pathbackup}/${namespace}/$(date +%Y%m%d)/logs/${namespace}-$(date +%Y-%m-%d_%H%M%S)-ocp_backup.log)
+	fi
         getpods=$(oc get pods -n $namespace -o jsonpath='{range .items[*].metadata}{.name}{"\n"}{end}' --field-selector=status.phase==${statusphase})
         for POD in ${getpods};do
             mountpoints=$(oc get pod ${POD} -o jsonpath='{ .spec.containers[].volumeMounts[*].mountPath }' -n ${namespace})
@@ -58,18 +61,23 @@ elif [[ -d ${DIRECTORY} ]];then
             echo "POD: ${POD}"
             echo "------------------------------------"
 	    if [[ -d ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD} ]];then
-            	echo "mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}"
-            	#mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}
-	    else
 		echo "Path: ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD} already exists"
+	    else
+            	#echo "mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}"
+                echo "------------------------------------"
+		echo "CREATING DIRECTORY: ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}"
+                echo "------------------------------------"
+            	mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}
 	    fi
             echo "------------------------------------"
             for mountpoint in ${mountpoints};do
             	    echo "------------------------------------"
                     echo "MOUNTPOINT: ${mountpoint}"
             	    echo "------------------------------------"
-                    echo "oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}/ -n ${namespace}"
-                    #oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}/ -n ${namespace}
+		    echo "COPYING DATA FROM ${POD}:${mountpoint} TO ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}/ -n ${namespace}"
+            	    echo "------------------------------------"
+                    #echo "oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}/ -n ${namespace}"
+                    oc rsync ${POD}:${mountpoint} ${pathbackup}/${namespace}/$(date +%Y%m%d)/${POD}/ -n ${namespace}
             done
         done
 
