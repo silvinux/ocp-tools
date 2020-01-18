@@ -15,6 +15,11 @@
 #!/bin/bash
 if [[ "$#" -gt 0 ]]  && [[ "$#" -lt 2 ]];then
 namespace=$1
+ocproject=$(oc get project ${namespace} > /dev/null 2>&1)
+ocprojectresult=$?
+if [ ${ocprojectresult} -gt 0 ]; then
+        echo "Requires an existing OCP project."
+else
 getpods=$(oc get pods -n $namespace -o jsonpath='{range .items[*].metadata}{.name}{"\n"}{end}' --field-selector=status.phase==Running)
 for POD in ${getpods};do
 	pathvolumeMounts=$(oc get pod ${POD} -o jsonpath='{ .spec.containers[].volumeMounts[*].mountPath }' -n $namespace)
@@ -35,6 +40,7 @@ for POD in ${getpods};do
 	    fi
 	done
 done
+fi
 else
 	echo "Usage: $0 <Project-Name>"
 fi
