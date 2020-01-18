@@ -18,6 +18,12 @@ echo "Option -$OPTARG needs an argument." >&2
 echo "Usage: $0 -p <Project-Name> -d </backup/path/> -s <status.phase><Succeeded> (Optional|Default(Running))" 
 }
 
+# Check if executed as OSE system:admin
+if [[ "$(oc whoami)" != "admin" ]]; then
+  echo -n "Trying to log in as system:admin... "
+  oc login -u admin -predhat > /dev/null && echo "done."
+fi
+
 statusphase=Running
 #No arguments
 if [[ "$#" -eq 0 ]];then
@@ -102,7 +108,22 @@ elif [[ -d ${DIRECTORY} ]];then
 
 
         done
+	if [[ -d ${pathbackup}/${namespace}/$(date +%Y%m%d)/resources ]];then
+	    echo "Path: ${pathbackup}/${namespace}/$(date +%Y%m%d)/resources already exists"
+	else
+            echo "mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/resources"
+            echo "------------------------------------"
+	    echo "CREATING DIRECTORY: ${pathbackup}/${namespace}/$(date +%Y%m%d)/resources"
+            echo "------------------------------------"
+            mkdir -p ${pathbackup}/${namespace}/$(date +%Y%m%d)/resources
+	fi
+	echo -n "Backing up project  ${namespace}... "
+	oc get -n ${namespace} -o yaml --export all > ${pathbackup}/${namespace}/$(date +%Y%m%d)/resources/project.yaml
 
+	for object in rolebindings serviceaccounts secrets imagestreamtags cm egressnetworkpolicies rolebindingrestrictions limitranges resourcequotas pvc templates cronjobs statefulsets hpa deployments replicasets poddisruptionbudget endpoints;do
+	  oc get -n ${namespace} -o yaml --export $object > ${pathbackup}/${namespace}/$(date +%Y%m%d)/resources/$object.yaml
+	done
+	echo "done."
 else
   echo "Not a directory"
 fi
