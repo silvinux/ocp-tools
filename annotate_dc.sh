@@ -30,8 +30,8 @@ for DC in ${getdcs};do
 	for i in $(seq 1 $count);do
 	    echo "-------------------------------"
 	    echo VolumeName: ${volumenames[$i-1]}
-	    echo "oc patch dc/${DC} -p '{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"backup.velero.io/backup-volumes\": \"${volumenames[$i-1]}\"}}}}}'"
-	    oc patch dc/${DC} -p '{"spec":{"template":{"metadata":{"annotations":{"backup.velero.io/backup-volumes": "'${volumenames[$i-1]}'"}}}}}'
+	    echo "oc patch dc/${DC} -n ${namespace} -p '{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"backup.velero.io/backup-volumes\": \"${volumenames[$i-1]}\"}}}}}'"
+	    oc patch dc/${DC} -n ${namespace} -p '{"spec":{"template":{"metadata":{"annotations":{"backup.velero.io/backup-volumes": "'${volumenames[$i-1]}'"}}}}}'
 	    echo "-------------------------------"
 	done
 	elif [[ ${#volumenames[@]} -gt 1 ]];then
@@ -40,8 +40,8 @@ for DC in ${getdcs};do
 	    volumenamesmoreone=$(printf ",%s" "${volumenames[@]}")
 	    volumenamesmoreone=${volumenamesmoreone:1}
 	    echo VolumeNames: ${volumenamesmoreone}
-	    echo "oc patch dc/${DC} -p '{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"backup.velero.io/backup-volumes\": \"${volumenamesmoreone}\"}}}}}'"
-	    oc patch dc/${DC} -p '{"spec":{"template":{"metadata":{"annotations":{"backup.velero.io/backup-volumes": "'${volumenamesmoreone}'"}}}}}'
+	    echo "oc patch dc/${DC} -n ${namespace} -p '{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"backup.velero.io/backup-volumes\": \"${volumenamesmoreone}\"}}}}}'"
+	    oc patch dc/${DC} -n ${namespace} -p '{"spec":{"template":{"metadata":{"annotations":{"backup.velero.io/backup-volumes": "'${volumenamesmoreone}'"}}}}}'
 	    echo "-------------------------------"
 	done
 	fi
